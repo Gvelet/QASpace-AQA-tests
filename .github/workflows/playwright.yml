@@ -1,27 +1,22 @@
 name: Playwright Tests
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-jobs:
-  test:
-    timeout-minutes: 60
+  workflow_dispatch:                    # Включает кнопку "Run workflow" в веб-интерфейсе GitHub Actions.
+  repository_dispatch:                  # Срабатывает при получении события repository_dispatch
+    types: [deploy-trigger]
+
+jobs:                                   # Здесь только один job test - выполнение Playwright тестов.
+  test: 
+    timeout-minutes: 20
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
+    steps:                                # Последовательность шагов (steps) внутри job.
+    - uses: actions/checkout@v4           # Клонирует ваш GitHub репозиторий в runner. Первый обязательный шаг - без кода тесты не запустятся. v4 - актуальная стабильная версия.
+    - uses: actions/setup-node@v4         # Устанавливает Node.js версии 20 и добавляет в PATH.
+      with: node-version: 20
+    - run: npm ci                        # Устанавливает зависимости из package-lock.json (строго по lock-файлу).
+    - uses: microsoft/playwright-github-action@v1  #Устанавливает Playwright + все браузеры (Chromium, Firefox, WebKit) + системные зависимости.
+    - run: npx playwright test --project=prod-chromium  # Запускает только тесты из проекта prod-chromium с Chromium браузером
+    - uses: actions/upload-artifact@v4   # Загружает папку playwright-report/ как артефакт GitHub.
+      if: always()
       with:
         name: playwright-report
         path: playwright-report/
-        retention-days: 30

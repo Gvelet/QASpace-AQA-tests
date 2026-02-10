@@ -2,7 +2,13 @@
   "name": "qaspace-tests",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "playwright test",
+    "test:local": "playwright test --project=local-chromium --headed",
+    "test:prod": "playwright test --project=prod-chromium --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
