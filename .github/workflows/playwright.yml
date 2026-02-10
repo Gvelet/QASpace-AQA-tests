@@ -13,10 +13,11 @@ jobs:                                   # Здесь только один job t
     - uses: actions/setup-node@v4         # Устанавливает Node.js версии 20 и добавляет в PATH.
       with: 
         node-version: 20
-    - run: npm ci                        # Устанавливает зависимости из package-lock.json (строго по lock-файлу).
-    - uses: microsoft/playwright-github-action@v1  #Устанавливает Playwright + все браузеры (Chromium, Firefox, WebKit) + системные зависимости.
-    - run: npx playwright test --project=prod-chromium  # Запускает только тесты из проекта prod-chromium с Chromium браузером
-    - uses: actions/upload-artifact@v4   # Загружает папку playwright-report/ как артефакт GitHub.
+    - run: npm ci
+    - run: npx playwright install --with-deps   # ✅ ФИКС 1+2
+    - run: npx playwright test --project=prod-chromium
+    - run: npx playwright show-report           # ✅ ФИКС 3
+    - uses: actions/upload-artifact@v4
       if: always()
       with:
         name: playwright-report
