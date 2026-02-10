@@ -11,7 +11,8 @@ jobs:                                   # Здесь только один job t
     steps:                                # Последовательность шагов (steps) внутри job.
     - uses: actions/checkout@v4           # Клонирует ваш GitHub репозиторий в runner. Первый обязательный шаг - без кода тесты не запустятся. v4 - актуальная стабильная версия.
     - uses: actions/setup-node@v4         # Устанавливает Node.js версии 20 и добавляет в PATH.
-      with: node-version: 20
+      with: 
+        node-version: 20
     - run: npm ci                        # Устанавливает зависимости из package-lock.json (строго по lock-файлу).
     - uses: microsoft/playwright-github-action@v1  #Устанавливает Playwright + все браузеры (Chromium, Firefox, WebKit) + системные зависимости.
     - run: npx playwright test --project=prod-chromium  # Запускает только тесты из проекта prod-chromium с Chromium браузером
