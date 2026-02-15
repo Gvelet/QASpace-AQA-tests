@@ -19,37 +19,9 @@ export default defineConfig({
 
   projects: [
     {
-      name: 'local-chromium',
-      use: { 
-        ...devices['Desktop Chrome'],  
-        baseURL: 'http://localhost:3000'
-      },
+      name: 'prod-chromium',
+      use: { ...devices['Desktop Chrome'] },
     },
-    
-    {
-      name: 'prod-chromium',  
-      use: {
-        ...devices['Desktop Chrome'],
-        baseURL: 'https://qaspace.ru' 
-      },
-    },
-    
-    /*
-    {
-      name: 'prod-firefox',
-      use: { 
-        ...devices['Desktop Firefox'],
-        baseURL: 'https://qaspace.ru'
-      },
-    },
-    {
-      name: 'prod-webkit', 
-      use: {
-        ...devices['Desktop Safari'], 
-        baseURL: 'https://qaspace.ru'
-      },
-    },
-    */
   ],
 });
 

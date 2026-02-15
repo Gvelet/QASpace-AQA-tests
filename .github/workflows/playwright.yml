@@ -1,36 +1,40 @@
-name: Playwright Tests
+# ✅ Фиксит: deps, report, триггер для сайта. Только prod тесты. HTML отчет всегда.
+name: Playwright Prod Tests
 on:
-  workflow_dispatch:
-  repository_dispatch:
+  workflow_dispatch:  # ✅ Ручной запуск в UI
+  repository_dispatch:  # ✅ Триггер от сайта
     types: [deploy-trigger]
+
 jobs:
   test:
-    timeout-minutes: 20
+    timeout-minutes: 15  # ✅ Хватит для 20-50 E2E
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        
-    - name: Install dependencies
-      run: npm ci
+      - uses: actions/checkout@v4  # ✅ Код тестов
       
-    - name: Install Playwright Browsers + System Dependencies
-      run: npx playwright install --with-deps
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20  # ✅ Твой Node
       
-    - name: Run Playwright Tests
-      run: npx playwright test --project=prod-chromium
+      - name: Install deps
+        run: npm ci  # ✅ Быстрее npm install
       
-    - name: Generate HTML Report
-      if: always()
-      run: npx playwright show-report
+      - name: Install Playwright + deps  # ✅ Фиксит warnings
+        run: npx playwright install --with-deps
       
-    - name: Upload Test Report Artifact
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
+      - name: Run Prod Tests  # ✅ Только prod проект
+        run: npx playwright test --project=prod-chromium
+        env:
+          BASE_URL: https://qaspace.ru  # ✅ Явно для prod
+      
+      - name: Generate Report  # ✅ Всегда создает
+        if: always()
+        run: npx playwright show-report
+      
+      - name: Upload Report  # ✅ Скачай из Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
