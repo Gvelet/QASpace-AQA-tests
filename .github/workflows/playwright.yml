@@ -59,17 +59,4 @@ jobs:
       run: |
         export TZ=Asia/Yekaterinburg
         START_TIME="${{ steps.start-time.outputs.start_time }}"
-        START_SEC="${{ steps.start-time.outputs.start_sec }}"
-        END_SEC=$(date +%s)
-        DURATION=$((END_SEC - START_SEC))
-        
-        # ✅ ПРОВЕРЯЕМ Playwright результат, а не job.status!
-        if [ -f "playwright-report/results.json" ] && grep -q '"status":"passed"' "playwright-report/results.json" 2>/dev/null; then
-          STATUS="✅ Все тесты прошли"
-        else
-          STATUS="❌ Тесты не прошли"
-        fi
-        
-        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-          -H "Content-Type: application/json" \
-          -d "{\"chat_id\":\"${TELEGRAM_CHAT_ID}\",\"parse_mode\":\"Markdown\",\"text\":\"🧪 QASpace Prod Tests #${{ github.run_number }}\\n🔗 https://qaspace.ru\\n\\n**Sтатус:** ${STATUS}\\n**📅** ${START_TIME} - ⏱️ ${DURATION}s\\n\\n**Вложения:**\\n📁 [Архив отчета](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" -H "Content-Type: application/json" -d "{\"chat_id\":\"${TELEGRAM_CHAT_ID}\",\"text\":\"🧪 QASpace Prod Tests #${{ github.run_number }} - ${{ job.status }} (${START_TIME})\"}"
