@@ -1,37 +1,30 @@
-# ✅ Фиксит: deps, report, триггер для сайта. Только prod тесты. HTML отчет всегда.
 name: Playwright Prod Tests
 on:
-  workflow_dispatch:  # ✅ Ручной запуск в UI
-  repository_dispatch:  # ✅ Триггер от сайта
+  workflow_dispatch:
+  repository_dispatch:
     types: [deploy-trigger]
-
 jobs:
   test:
-    timeout-minutes: 15  # ✅ Хватит для 20-50 E2E
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4  # ✅ Код тестов
-      
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20  # ✅ Твой Node
+          node-version: 20
       
       - name: Install deps
-        run: npm ci  # ✅ Быстрее npm install
+        run: npm ci
       
-      - name: Install Playwright + deps  # ✅ Фиксит warnings
+      - name: Install Playwright
         run: npx playwright install --with-deps
       
-      - name: Run Prod Tests  # ✅ Только prod проект
+      - name: Run Tests
         run: npx playwright test --project=prod-chromium
         env:
-          BASE_URL: https://qaspace.ru  # ✅ Явно для prod
+          BASE_URL: https://qaspace.ru
       
-      - name: Generate Report  # ✅ Всегда создает
-        if: always()
-        run: npx playwright show-report
-      
-      - name: Upload Report  # ✅ Скачай из Artifacts
+      - name: Upload Report  # ✅ УБРАЛ show-report (висит!)
         if: always()
         uses: actions/upload-artifact@v4
         with:
