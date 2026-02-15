@@ -1,75 +1,89 @@
 name: Playwright Prod Tests
+
 on:
   workflow_dispatch:
   repository_dispatch:
     types: [deploy-trigger]
+
 jobs:
   test:
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    
+    env:
+      TZ: Asia/Yekaterinburg
+      BASE_URL: https://qaspace.ru
+    
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    
+    - name: Cache npm dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+          
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+        
+    - name: Cache apt lists
+      uses: actions/cache@v4
+      with:
+        path: /var/lib/apt/lists
+        key: ${{ runner.os }}-apt-ubuntu-${{ hashFiles('**/package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-ubuntu-
+          
+    - name: Install deps
+      run: npm ci
       
-      - name: Cache npm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Cache apt lists
-        uses: actions/cache@v4
-        with:
-          path: /var/lib/apt/lists
-          key: ${{ runner.os }}-apt-ubuntu-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-ubuntu-
-
-      - name: Install deps
-        run: npm ci
+    - name: Install Playwright
+      run: npx playwright install --with-deps
       
-      - name: Install Playwright
-        run: npx playwright install --with-deps
-
-      - name: Run Tests
-        run: npx playwright test --project=prod-chromium
-        env:
-          BASE_URL: https://qaspace.ru
-
-      - name: Upload Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
-
-      - name: Parse test stats  # ✅ JSON вместо HTML
-        if: always()
-        id: stats
-        run: |
-          if [ -f test-results/results.json ]; then
-            PASSED=$(jq '[.suites[]?.tests?[]? | select(.status=="passed")] | length' test-results/results.json 2>/dev/null || echo 2)
-            TOTAL=$(jq '[.suites[]?.tests?[]?] | length' test-results/results.json 2>/dev/null || echo 4)
-            [ "$PASSED" = "$TOTAL" ] && STATUS="✅" || STATUS="❌"
-            echo "status=${STATUS} ${PASSED}/${TOTAL} tests" >> $GITHUB_OUTPUT
-            echo "duration=$(jq '.startTime // empty' test-results/results.json | head -1 | date -d @$(cut -d. -f1) '+%H:%M %d.%m' 2>/dev/null || echo '21:30 15.02')" >> $GITHUB_OUTPUT
-          else
-            echo "status=❓ 2/4 tests" >> $GITHUB_OUTPUT
-            echo "duration=21:30 15.02" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Send Telegram notification
-        if: always()
-        run: |
-          STATUS="${{ job.status == 'success' && '✅ 5/5 tests' || '❌ 2/5 tests' }}"
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
-            -H 'Content-Type: application/json' \
-            -d "{\"chat_id\":\"${{ secrets.TELEGRAM_CHAT_ID }}\",\"parse_mode\":\"Markdown\",\"disable_web_page_preview\":true,\"text\":\"🧪 QASpace Prod Tests #${{ github.run_number }}\n🔗 https://qaspace.ru\n\n*Sтатус:* ${{ job.status }} $STATUS\n*📅 $(date +%H:%M-%d.%m) - ⏱️ 51s*\n\n*Вложения:*\n📁 [Архив отчета](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n📈 [Логи Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\"}"
-
+    - name: Capture start time
+      id: start-time
+      run: |
+        export TZ=Asia/Yekaterinburg
+        echo "start_time=$(date '+%H:%M-%d.%m')" >> $GITHUB_OUTPUT
+        echo "start_sec=$(date +%s)" >> $GITHUB_OUTPUT
+      
+    - name: Run Tests
+      run: npx playwright test --project=prod-chromium
+      env:
+        BASE_URL: https://qaspace.ru
+        
+    - name: Upload Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
+        
+    - name: Send Telegram notification
+      if: always()
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        export TZ=Asia/Yekaterinburg
+        END_TIME_SEC=$(date +%s)
+        START_TIME_SEC="${{ steps.start-time.outputs.start_sec }}"
+        DURATION=$((END_TIME_SEC - START_TIME_SEC))
+        
+        if [ "${{ job.status }}" = "success" ]; then
+          STATUS="✅ Все тесты прошли"
+        else
+          STATUS="❌ Тесты не прошли"
+        fi
+        
+        curl -s -X POST \
+          "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+          -d chat_id="$TELEGRAM_CHAT_ID" \
+          -d parse_mode=Markdown \
+          -d "text=🧪 QASpace Prod Tests #${{ github.run_number }}\n🔗 https://qaspace.ru\n\nSтатус: $STATUS\n📅 ${{ steps.start-time.outputs.start_time }} - ⏱️ ${DURATION}s\n\nВложения:\n📁 Архив отчета (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n📈 Логи Actions (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
+          -F document=@playwright-report/index.html
