@@ -1,22 +1,17 @@
 name: Playwright Prod Tests
-
 on:
   workflow_dispatch:
   repository_dispatch:
     types: [deploy-trigger]
-
 jobs:
   test:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    
     env:
       TZ: Asia/Yekaterinburg
       BASE_URL: https://qaspace.ru
-    
     steps:
     - uses: actions/checkout@v4
-    
     - name: Cache npm dependencies
       uses: actions/cache@v4
       with:
@@ -24,12 +19,10 @@ jobs:
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
-          
     - uses: actions/setup-node@v4
       with:
         node-version: 20
         cache: 'npm'
-        
     - name: Cache apt lists
       uses: actions/cache@v4
       with:
@@ -37,25 +30,20 @@ jobs:
         key: ${{ runner.os }}-apt-ubuntu-${{ hashFiles('**/package.json') }}
         restore-keys: |
           ${{ runner.os }}-apt-ubuntu-
-          
     - name: Install deps
       run: npm ci
-      
     - name: Install Playwright
       run: npx playwright install --with-deps
-      
     - name: Capture start time
       id: start-time
       run: |
         export TZ=Asia/Yekaterinburg
         echo "start_time=$(date '+%H:%M-%d.%m')" >> $GITHUB_OUTPUT
         echo "start_sec=$(date +%s)" >> $GITHUB_OUTPUT
-      
     - name: Run Tests
       run: npx playwright test --project=prod-chromium
       env:
         BASE_URL: https://qaspace.ru
-        
     - name: Upload Report
       if: always()
       uses: actions/upload-artifact@v4
@@ -63,7 +51,6 @@ jobs:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
-        
     - name: Send Telegram notification
       if: always()
       env:
@@ -71,19 +58,16 @@ jobs:
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       run: |
         export TZ=Asia/Yekaterinburg
-        END_TIME_SEC=$(date +%s)
-        START_TIME_SEC="${{ steps.start-time.outputs.start_sec }}"
-        DURATION=$((END_TIME_SEC - START_TIME_SEC))
-        
+        START_TIME="${{ steps.start-time.outputs.start_time }}"
+        START_SEC="${{ steps.start-time.outputs.start_sec }}"
+        END_SEC=$(date +%s)
+        DURATION=$((END_SEC - START_SEC))
         if [ "${{ job.status }}" = "success" ]; then
           STATUS="✅ Все тесты прошли"
         else
           STATUS="❌ Тесты не прошли"
         fi
-        
         curl -s -X POST \
-          "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-          -d chat_id="$TELEGRAM_CHAT_ID" \
-          -d parse_mode=Markdown \
-          -d "text=🧪 QASpace Prod Tests #${{ github.run_number }}\n🔗 https://qaspace.ru\n\nSтатус: $STATUS\n📅 ${{ steps.start-time.outputs.start_time }} - ⏱️ ${DURATION}s\n\nВложения:\n📁 Архив отчета (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n📈 Логи Actions (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
-          -F document=@playwright-report/index.html
+          "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          -H "Content-Type: application/json" \
+          -d "{\"chat_id\":\"${TELEGRAM_CHAT_ID}\",\"parse_mode\":\"Markdown\",\"text\":\"🧪 QASpace Prod Tests #${{ github.run_number }}\\n🔗 https://qaspace.ru\\n\\n**Sтатус:** ${STATUS}\\n**📅** ${START_TIME} - ⏱️ ${DURATION}s\\n\\n**Вложения:**\\n📁 [Архив отчета](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\\n📈 [Логи Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\"}"
