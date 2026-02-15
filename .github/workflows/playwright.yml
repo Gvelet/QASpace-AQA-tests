@@ -23,7 +23,7 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Cache apt lists  # ← Только lists (без lock ошибок)
+      - name: Cache apt lists
         uses: actions/cache@v4
         with:
           path: /var/lib/apt/lists
@@ -40,7 +40,7 @@ jobs:
       - name: Run Tests
         run: npx playwright test --project=prod-chromium
         env:
-          BASE_URL: https://qaspace.ru  # ✅ Чистая строка
+          BASE_URL: https://qaspace.ru  # ✅ ИСПРАВЛЕНО
 
       - name: Upload Report
         if: always()
@@ -50,16 +50,14 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-      - name: Send Telegram notification
+      - name: Send Telegram notification  # ✅ CURL - работает всегда
         if: always()
-        uses: 83882682/schedule-message-action@v4
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          format: markdown
-          message: |
-            🧪 *QASpace Prod Tests* #${{ github.run_number }}
-            📊 *${{ job.status }}* (${{ github.run_id }})
-            📈 [Report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            🕐 ${{ github.event.repository.updated_at }}
-            🔗 https://qaspace.ru  # ✅ Фикс env.BASE_URL
+        run: |
+          curl -s -X POST \
+            "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
+              "parse_mode": "Markdown",
+              "text": "🧪 *QASpace Prod Tests* #${{ github.run_number }}\n📊 *${{ job.status }}*\n📈 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n🔗 https://qaspace.ru"
+            }'
