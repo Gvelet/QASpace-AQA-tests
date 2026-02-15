@@ -9,9 +9,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Cache npm dependencies  # ← npm кэш ДО setup-node
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'  # ← авто-кэш node_modules
+      
+      - name: Cache apt dependencies  # ← apt кэш ДО Playwright
+        uses: actions/cache@v4
+        with:
+          path: |
+            /var/cache/apt/archives
+            /var/lib/apt/lists
+          key: ${{ runner.os }}-apt-ubuntu-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-ubuntu-
       
       - name: Install deps
         run: npm ci
