@@ -7,8 +7,8 @@ export default defineConfig({
 
   retries: process.env.CI ? 2 : 0,
 
-  workers: process.env.CI ? 2 : undefined,
-
+  workers: process.env.CI ? 2 : 4,
+  timeout: 60000,
   reporter: 'html',
   
   use: {

@@ -35,7 +35,7 @@ jobs:
         echo "start_time=$(date '+%H:%M-%d.%m')" >> $GITHUB_OUTPUT
         echo "start_sec=$(date +%s)" >> $GITHUB_OUTPUT
     - name: Run Tests
-      run: npx playwright test --project=prod-chromium --workers=4 # Запуск 4 тестов параллельно
+      run: npx playwright test --project=prod-chromium --workers=2 # Запуск 2 тестов параллельно
       env:
         BASE_URL: https://qaspace.ru
     - name: Upload Report
