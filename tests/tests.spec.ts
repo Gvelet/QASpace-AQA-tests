@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('🏠 Главная загружается', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveTitle(/QA Spac1e/);
+  await expect(page).toHaveTitle(/QA Space/);
   await expect(page.locator('h1')).toBeVisible();
 });
 
