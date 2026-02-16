@@ -27,7 +27,7 @@ jobs:
     - name: Install deps
       run: npm ci
     - name: Install Playwright
-      run: npx playwright install --with-deps  # Браузеры + системные libs. Устанавливает Chromium
+      run: npx playwright install --with-deps  # Браузеры + системные libs. Устанавливает Chromiumgitr ad
     - name: Capture start time
       id: start-time
       run: |
