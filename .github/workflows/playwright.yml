@@ -53,4 +53,23 @@ jobs:
       run: |
         export TZ=Asia/Yekaterinburg
         START_TIME="${{ steps.start-time.outputs.start_time }}"
-        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" -H "Content-Type: application/json" -d "{\"chat_id\":\"${TELEGRAM_CHAT_ID}\",\"text\":\"🧪 QASpace Prod Tests #${{ github.run_number }} - ${{ job.status }} (${START_TIME})\"}"
+        END_TIME=$(date '+%H:%M-%d.%m')
+        DURATION_MIN=$(( ($(date +%s) - ${{ steps.start-time.outputs.start_sec }} ) / 60 ))
+        DURATION_SEC=$(( ($(date +%s) - ${{ steps.start-time.outputs.start_sec }} ) % 60 ))
+        RUN_URL="https://github.com/Gvelet/QASpace-AQA-tests/actions/runs/${{ github.run_id }}"
+        
+        if [ "${{ job.status }}" = "success" ]; then
+          STATUS="✅ Тесты прошли"
+          EMOJI="✅"
+        else
+          STATUS="❌ Тесты не прошли"
+          EMOJI="❌"
+        fi
+        
+        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"chat_id\":\"${TELEGRAM_CHAT_ID}\",
+            \"text\":\"🧪 QASpace Prod Tests #${{ github.run_number }}\n🔗 https://qaspace.ru\n\n${STATUS}\n📅 ${START_TIME} - ${END_TIME} - ⏱️ ${DURATION_MIN}м ${DURATION_SEC}с\n\nВложения:\n📁 Детали отчета (${RUN_URL})\",
+            \"disable_web_page_preview\": true
+          }"
