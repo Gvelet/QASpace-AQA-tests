@@ -10,15 +10,9 @@ jobs:
     env:
       TZ: Asia/Yekaterinburg
       BASE_URL: https://qaspace.ru
+      CI: true  # test new - для Playwright отключает headless=false
     steps:
     - uses: actions/checkout@v4
-    - name: Cache npm dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
     - uses: actions/setup-node@v4
       with:
         node-version: 20
@@ -41,7 +35,7 @@ jobs:
         echo "start_time=$(date '+%H:%M-%d.%m')" >> $GITHUB_OUTPUT
         echo "start_sec=$(date +%s)" >> $GITHUB_OUTPUT
     - name: Run Tests
-      run: npx playwright test --project=prod-chromium
+      run: npx playwright test --project=prod-chromium --workers=4 # Запуск 4 тестов параллельно
       env:
         BASE_URL: https://qaspace.ru
     - name: Upload Report
