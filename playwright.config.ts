@@ -13,8 +13,8 @@ export default defineConfig({
   
   use: {
     baseURL: process.env.BASE_URL || 'https://qaspace.ru',
-    trace: 'on-first-retry',      // Видео при ошибке
-    screenshot: 'only-on-failure', // Скрин только при fail
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
   },
 
   projects: [
