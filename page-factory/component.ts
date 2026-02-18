@@ -85,6 +85,13 @@ export abstract class Component {
         });
     }
 
+    async shouldHaveText(text:string, locatorProps: LocatorProps = {}): Promise<void>{
+        await test.step(`${this.typeOfUpper} "${this.componentName}" имеет текст: "${text}"`, async() => {
+            const locator = this.getLocator(locatorProps);
+            await expect(locator, {message: this.getErrorMessage(`не имеет заданного текста: "${text}"`)}).toHaveText(text);
+        })
+    }
+
     // Выполняет клик по компоненту
     async click(locatorProps: LocatorProps = {}): Promise<void> {
         await test.step(`Клик на ${this.typeOf} с именем "${this.componentName}"`, async () => {
@@ -102,6 +109,14 @@ export abstract class Component {
             expect(attributeElement, { message: `Аттрибут ${nameAttribute} со значением ${attributeElement} совпадает с ${text}` }).toBe(text)
         })
     };
+
+    async haveCount(count: number, locatorProps: LocatorProps = {}): Promise<void>{
+        await test.step(`Кол-во элементов совпадает с заданным - ${count}`, async () => {
+            const locator = this.getLocator(locatorProps);
+
+            await expect(locator, {message: `Заданное кол-вл элементов ${count} не совпаадет с текущем`}).toHaveCount(count);
+        })
+    }
 
     async hover(locatorProps: LocatorProps = {}): Promise<void>{
         await test.step(`Наведение на ${this.typeOf} с именем ${this.componentName}`, async () => {
