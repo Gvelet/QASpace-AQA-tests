@@ -118,6 +118,16 @@ export abstract class Component {
         })
     }
 
+    async haveCountAbsolute(count: number, locatorProps: LocatorProps = {}): Promise<void>{
+        await test.step(`Кол-во элементов >=  ${count}`, async () => {
+            const locator = this.getLocator(locatorProps);
+
+            const countElements = await locator.count();
+            expect(countElements).toBeGreaterThanOrEqual(count);
+
+        })
+    }
+
     async hover(locatorProps: LocatorProps = {}): Promise<void>{
         await test.step(`Наведение на ${this.typeOf} с именем ${this.componentName}`, async () => {
             const locator = this.getLocator(locatorProps);
