@@ -1,0 +1,75 @@
+name: Playwright Prod Tests # Имя
+on: 
+  workflow_dispatch: # Manual запуск из UI
+  repository_dispatch:
+    types: [deploy-trigger] # Триггер из deploy.yml
+jobs:
+  test:
+    timeout-minutes: 10 #timeout-minutes: Макс 10 мин на job
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Yekaterinburg
+      BASE_URL: https://qaspace.ru
+      CI: true  # test new - для Playwright отключает headless=false
+    steps:
+    - uses: actions/checkout@v4 # Клонирует репозиторий
+    - uses: actions/setup-node@v4 # Установка ноды
+      with:
+        node-version: 20
+        cache: 'npm' # Авто-кэш npm
+    - name: Cache apt lists
+      uses: actions/cache@v4
+      with:
+        path: /var/lib/apt/lists
+        key: ${{ runner.os }}-apt-ubuntu-${{ hashFiles('**/package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-ubuntu-
+    - name: Install deps
+      run: npm ci
+    - name: Install Playwright
+      run: npx playwright install --with-deps  # Браузеры + системные libs. Устанавливает Chromiumgitr ad
+    - name: Capture start time
+      id: start-time
+      run: |
+        export TZ=Asia/Yekaterinburg
+        echo "start_time=$(date '+%H:%M-%d.%m')" >> $GITHUB_OUTPUT
+        echo "start_sec=$(date +%s)" >> $GITHUB_OUTPUT
+    - name: Run Tests
+      run: npx playwright test --project=prod-chromium --workers=2 # Запуск 2 тестов параллельно
+      env:
+        BASE_URL: https://qaspace.ru
+    - name: Upload Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
+    - name: Send Telegram notification
+      if: always()
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        export TZ=Asia/Yekaterinburg
+        START_TIME="${{ steps.start-time.outputs.start_time }}"
+        END_TIME=$(date '+%H:%M-%d.%m')
+        DURATION_MIN=$(( ($(date +%s) - ${{ steps.start-time.outputs.start_sec }} ) / 60 ))
+        DURATION_SEC=$(( ($(date +%s) - ${{ steps.start-time.outputs.start_sec }} ) % 60 ))
+        RUN_URL="https://github.com/Gvelet/QASpace-AQA-tests/actions/runs/${{ github.run_id }}"
+        
+        if [ "${{ job.status }}" = "success" ]; then
+          STATUS="✅ Тесты прошли"
+          EMOJI="✅"
+        else
+          STATUS="❌ Тесты не прошли"
+          EMOJI="❌"
+        fi
+        
+        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"chat_id\":\"${TELEGRAM_CHAT_ID}\",
+            \"text\":\"🧪 QASpace Prod Tests #${{ github.run_number }}\n🔗 https://qaspace.ru\n\n${STATUS}\n📅 ${START_TIME} - ${END_TIME} - ⏱️ ${DURATION_MIN}м ${DURATION_SEC}с\n\nВложения:\n📁 Детали отчета (${RUN_URL})\",
+            \"disable_web_page_preview\": true
+          }"
