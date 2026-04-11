@@ -66,3 +66,11 @@ test.describe('Главная страница - контент', () => {
         await HomePage.wrapperSliderBlog.haveCount(3);
     });
 })
+
+
+test.describe('Главная страница', () => {
+
+    test.beforeEach("", () => {
+        
+    })
+})

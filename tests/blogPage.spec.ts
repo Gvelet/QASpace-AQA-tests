@@ -21,6 +21,17 @@ test.describe('Страница Блога - метатеги', {tag: '@meta'}, 
 
 });
 
+async function loadData() {
+  try {
+    const res = await fetch('/api');
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+
 test.describe('Страница Блога - контент', () => {
     const {titlePage, subtitlePage} = blogPageExpect.page;
     const {title, description, category} = blogPageExpect.card;
@@ -51,6 +62,8 @@ test.describe('Страница Блога - контент', () => {
         await BlogPage.сardDesc.shouldHaveText(description)
     })
 });
+
+
 
 test.describe('Страница Блога - функционал', {tag: '@API'}, () => {
 

@@ -15,3 +15,4 @@ export const locatorTemplateFormat = (locator: string, { ...context}: LocatorCon
 // locator: строка-шаблон, например: //div[@data-id="{id}"].
 // context: объект с ключами и значениями, например: { id: 123 }.
 // Итог: "//div[@data-id=\"123\"]"
+

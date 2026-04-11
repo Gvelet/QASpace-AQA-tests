@@ -9,7 +9,7 @@ export abstract class Component {
     private name: string | undefined;
     private root?: string;
 
-    constructor({page, locator, name, root}){
+    constructor({page, locator, name, root}: ComponentProps){
         this.page = page;
         this.locator = locator;
         this.name = name;
@@ -149,6 +149,24 @@ export abstract class Component {
             const locator = this.getLocator(locatorProps);
             return await locator.allTextContents();
         });
+    }
+
+    async getLastElement(locatorProps: LocatorProps = {}): Promise<Locator>{
+        return await test.step(`Получение последнего элемента "${this.componentName}"`, async () => {
+            const locator = this.getLocator(locatorProps);
+            const lastLocator = locator.last();
+
+            return lastLocator
+        })
+    }
+
+    async getLastElementText(locatorProps: LocatorProps = {}): Promise<string>{
+        return await test.step(`Получение текста у последнего элемента ${this.componentName}`, async() => {
+            const locator = this.getLocator(locatorProps);
+            const lastLocator = locator.last();
+            const text = await lastLocator.textContent();
+            return text || '';
+        })
     }
 
 }

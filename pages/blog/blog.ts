@@ -37,7 +37,7 @@ export class BlogPage extends BasePage{
     readonly сardTitle: Text;
     readonly сardDesc: Text;
 
-    constructor(public page: Page){
+    constructor(public readonly page: Page){
         super(page);
         this.titlePage = new Title({page, locator: SELECTOR_TITLE_PAGE, name: 'Заголовок страницы h1', root: this.root});
         this.subtitlePage = new Text({page, locator: SELECTOR_SUBTITLE_PAGE, name: 'Подзаголовок страницы', root: this.root});
@@ -80,7 +80,7 @@ export class BlogPage extends BasePage{
     async editArticleBlog(url:string, articleSlug:string, editTitle:string){
         await this.page.route(url, async route => {
             const response = await route.fetch();
-            const articles = await response.json();
+            const articles = await response.json() as BlogArticle[];
 
             const modification = articles.find(article => article.slug == articleSlug);
 
