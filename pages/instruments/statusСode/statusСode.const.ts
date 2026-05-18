@@ -1,0 +1,11 @@
+export const SELECTOR_TITLE_PAGE = '.statuses__title';
+export const SELECTOR_DESCRIPTION_PAGE = '.statuses__text';
+export const SELECTOR_INPUT = '.statuses__input';
+export const SELECTOR_SUBMIT_BTN= '.statuses__wrapper-submit';
+export const SELECTOR_SELECT_GROUPS = '.statuses__selects-groups';
+export const SELECTOR_SELECT_CODES = '.statuses__selects-codes';
+export const SELECTOR_SELECT_DEFAULT = '.statuses__selects-codes option:checked'
+export const SELECTOR_SELECT_GROUPS_DEFAULT = '.statuses__selects-groups option:checked';
+export const SELECTOR_RESULT_ERROR = '.statuses__info-text-error'
+export const SELECTOR_RESULT_TEXT = '.statuses__info .statuses__info-text'
+export const SELECTOR_RESULT_TITLE = '.statuses__info .statuses__info-title'

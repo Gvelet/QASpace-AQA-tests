@@ -16,9 +16,9 @@ export class PromoTgMiniComponent{
     readonly promoWrapper: Wrapper;
 
     constructor(page: Page, root?: string){
-        this.root = root;
+        this.root = root ?? '';
         this.promoTitle = new Title({page, locator: SELECTOR_TITLE, name: 'Заголовок промо', root: this.root});
         this.promoBtnTg = new Button({page, locator: SELECTOR_BTN_TG, name: 'Ссылка на канал в тг', root: this.root});
-        this.promoWrapper = new Button({page, locator: SELECTOR_WRAPPER_PROMO_MINI, name: 'Обертка для промо', root: this.root});
+        this.promoWrapper = new Wrapper({page, locator: SELECTOR_WRAPPER_PROMO_MINI, name: 'Обертка для промо', root: this.root});
     }
 }

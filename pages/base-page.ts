@@ -61,13 +61,13 @@ export class BasePage {
         });
     }
 
-    async checkDescriptionPageMeta(page, expectText: string): Promise<void>{
+    async checkDescriptionPageMeta(page: Page, expectText: string): Promise<void>{
         await test.step(`В мета теге "description" верный текст: ${expectText}`, async () => {
             await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', expectText);
         });
     }
 
-    async checkOGTitlePageMeta(page, expectText: string): Promise<void>{
+    async checkOGTitlePageMeta(page: Page, expectText: string): Promise<void>{
         await test.step(`В мета теге "og:title" верный текст: ${expectText}`, async () => {
             await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', expectText);
         });

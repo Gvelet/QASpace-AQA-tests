@@ -21,16 +21,6 @@ test.describe('Страница Блога - метатеги', {tag: '@meta'}, 
 
 });
 
-async function loadData() {
-  try {
-    const res = await fetch('/api');
-    const data = await res.json();
-    return data;
-  } catch (e) {
-    console.error(e);
-  }
-}
-
 
 test.describe('Страница Блога - контент', () => {
     const {titlePage, subtitlePage} = blogPageExpect.page;
@@ -83,7 +73,7 @@ test.describe('Страница Блога - функционал', {tag: '@API'
         await BlogPage.tabActiveBtn.shouldHaveText(defaultTabName)
     })
 
-    test.only('На отдельном табе свои карточки', async({BlogPage}) => {
+    test('На отдельном табе свои карточки', async({BlogPage}) => {
         await BlogPage.tabBtnTest.click();
         await BlogPage.categoriesAllCards.haveCountAbsolute(1);
 

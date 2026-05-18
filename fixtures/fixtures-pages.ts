@@ -7,6 +7,7 @@ import { InstrumentsPage } from '@/pages/instruments/instruments';
 import { AnalizDataPage } from '@/pages/analiz/analiz';
 import { CounterPage } from '@/pages/analiz/counter/counter';
 import { PracticTekstovyjInput } from '@/pages/practices/tekstovyjInput/tekstovyjInput';
+import { StatusCodePage } from '@/pages/instruments/statusСode/statusСode';
 
 export type PageFixtures = {
     HomePage: HomePage;
@@ -15,6 +16,7 @@ export type PageFixtures = {
     AnalizDataPage: AnalizDataPage;
     CounterPage: CounterPage;
     PracticTekstovyjInput: PracticTekstovyjInput;
+    StatusCodePage: StatusCodePage;
 };
 
 export const pageFixtures: Fixtures<PageFixtures, ContextPagesFixture> = {
@@ -52,5 +54,11 @@ export const pageFixtures: Fixtures<PageFixtures, ContextPagesFixture> = {
         const practicTekstovyjInputPage =  new PracticTekstovyjInput(contextPage);
 
         await use(practicTekstovyjInputPage)
+    },
+
+    StatusCodePage: async ({contextPage}, use) =>{
+        const statusesCodePage = new StatusCodePage(contextPage);
+
+        await use(statusesCodePage);
     }
 }
