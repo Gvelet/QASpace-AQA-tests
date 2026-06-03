@@ -9,7 +9,7 @@ export default defineConfig({
 
   workers: process.env.CI ? 2 : 4,
   timeout: 60000,
-  reporter: 'html',
+  reporter: [['line'], ['allure-playwright']],
   
   use: {
     baseURL: process.env.BASE_URL || 'https://qaspace.ru',
